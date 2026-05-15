@@ -32,7 +32,6 @@ RUN source /opt/ros/jazzy/setup.bash && \
 RUN source /opt/ros/jazzy/setup.bash && \
     colcon build --symlink-install
 
-# Source automático
 RUN echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
 RUN echo "source /root/ws/install/setup.bash" >> ~/.bashrc
 
