@@ -3,15 +3,10 @@
 ## Setup Jetson Orin Nano
 
 ```bash
-docker build -t realsense-orin .
+docker build -t realsense-jazzy .
 ```
 ```bash
-docker run -it --rm \
---privileged \
---network host \
--v /dev:/dev \
--v /run/udev:/run/udev \
-realsense-orin
+xhost +local:docker
 ```
 ```bash
 apt-get update && apt-get install -y \
