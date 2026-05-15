@@ -1,56 +1,39 @@
-FROM nvcr.io/nvidia/l4t-base:r36.2.0
+FROM ros:jazzy
+
+SHELL ["/bin/bash", "-c"]
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
+    git \
+    wget \
     curl \
-    gnupg2 \
-    lsb-release \
-    ca-certificates \
-    software-properties-common
-
-RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
-    | gpg --dearmor -o /usr/share/keyrings/ros-archive-keyring.gpg
-
-RUN echo "deb [arch=arm64 signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu jammy main" \
-    > /etc/apt/sources.list.d/ros2.list
-
-RUN apt-get update && apt-get install -y \
-    ros-humble-desktop \
+    vim \
+    usbutils \
     python3-colcon-common-extensions \
     python3-rosdep \
-    git \
-    cmake \
-    build-essential \
-    libssl-dev \
-    libusb-1.0-0-dev \
-    libudev-dev \
-    pkg-config \
-    v4l-utils \
-    usbutils
+    ros-jazzy-rviz2 \
+    ros-jazzy-rqt-image-view \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
+RUN rosdep update
 
-# Librealsense
-WORKDIR /opt
+RUN mkdir -p /root/ws/src
 
-RUN git clone https://github.com/IntelRealSense/librealsense.git
+WORKDIR /root/ws/src
 
-WORKDIR /opt/librealsense
+RUN git clone https://github.com/IntelRealSense/realsense-ros.git
 
-RUN git checkout v2.54.2
+WORKDIR /root/ws
 
-RUN mkdir build && cd build && \
-    cmake .. \
-    -DFORCE_RSUSB_BACKEND=ON \
-    -DBUILD_EXAMPLES=false \
-    -DBUILD_GRAPHICAL_EXAMPLES=false \
-    -DBUILD_WITH_OPENMP=false \
-    -DCMAKE_BUILD_TYPE=Release && \
-    make -j$(nproc) && \
-    make install
+RUN source /opt/ros/jazzy/setup.bash && \
+    rosdep install --from-paths src --ignore-src -r -y
 
-RUN cp /opt/librealsense/config/99-realsense-libusb.rules \
-    /etc/udev/rules.d/
+RUN source /opt/ros/jazzy/setup.bash && \
+    colcon build --symlink-install
 
-CMD ["/bin/bash"]
+# Source automático
+RUN echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
+RUN echo "source /root/ws/install/setup.bash" >> ~/.bashrc
+
+CMD ["bash"]
