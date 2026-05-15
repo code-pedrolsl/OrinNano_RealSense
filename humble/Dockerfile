@@ -47,5 +47,4 @@ RUN mkdir build && cd build && \
     make install && \
     ldconfig
 
-# FORCE_RSUSB_BACKEND dispensa udev rules no host
 CMD ["/bin/bash"]
