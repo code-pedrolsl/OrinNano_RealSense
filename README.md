@@ -1,4 +1,4 @@
-# realSensel515
+# realSense OrinNano
 
 ## Setup Jazzy
 
