@@ -9,26 +9,18 @@ docker build -t realsense-jazzy .
 xhost +local:docker
 ```
 ```bash
-apt-get update && apt-get install -y \
-    libgtk-3-dev \
-    libglfw3-dev \
-    libgl1-mesa-dev \
-    libglu1-mesa-dev
+docker run -it --rm \
+    --network host \
+    --privileged \
+    --device=/dev/bus/usb \
+    --volume=/tmp/.X11-unix:/tmp/.X11-unix \
+    --env="DISPLAY=$DISPLAY" \
+    realsense-jazzy
 ```
 ```bash
-cd /opt/librealsense
-rm -rf build
-mkdir build
-cd build
+source /opt/ros/jazzy/setup.bash
+source ~/ws/install/setup.bash
 ```
 ```bash
-cmake .. \
-    -DFORCE_RSUSB_BACKEND=ON \
-    -DBUILD_EXAMPLES=true \
-    -DBUILD_GRAPHICAL_EXAMPLES=true \
-    -DCMAKE_BUILD_TYPE=Release
-```
-```bash
-make -j$(nproc)
-make install
+ros2 launch realsense2_camera rs_launch.py
 ```
