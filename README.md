@@ -20,3 +20,6 @@ docker run -it --rm \
 source /opt/ros/humble/setup.bash
 source ~/ws/install/setup.bash
 ```
+Rodando rs-hello-realsense
+
+<img width="483" height="49" alt="image" src="https://github.com/user-attachments/assets/bb4779d2-1c3b-4401-acc8-106317c8ea68" />
