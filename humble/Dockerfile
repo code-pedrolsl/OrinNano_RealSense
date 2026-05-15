@@ -1,38 +1,51 @@
-FROM ros:humble
-
-SHELL ["/bin/bash", "-c"]
-
+FROM nvcr.io/nvidia/l4t-base:r36.2.0
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
-    git \
-    wget \
-    curl \
-    vim \
-    usbutils \
+    curl gnupg2 lsb-release ca-certificates software-properties-common
+
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
+    | gpg --dearmor -o /usr/share/keyrings/ros-archive-keyring.gpg
+
+RUN echo "deb [arch=arm64 signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] \
+    http://packages.ros.org/ros2/ubuntu jammy main" \
+    > /etc/apt/sources.list.d/ros2.list
+
+RUN apt-get update && apt-get install -y \
+    ros-humble-desktop \
     python3-colcon-common-extensions \
     python3-rosdep \
-    ros-humble-rviz2 \
-    ros-humble-rqt-image-view \
+    git cmake build-essential \
+    libssl-dev \
+    libusb-1.0-0-dev \
+    libudev-dev \
+    pkg-config \
+    libgtk-3-dev \
+    libglfw3-dev \
+    libgl1-mesa-dev \
+    libglu1-mesa-dev \
+    v4l-utils \
+    usbutils \
     && rm -rf /var/lib/apt/lists/*
 
-RUN rosdep update
+RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
 
-RUN mkdir -p /root/ws/src
+WORKDIR /opt
+RUN git clone https://github.com/IntelRealSense/librealsense.git
 
-WORKDIR /root/ws/src
+WORKDIR /opt/librealsense
+RUN git checkout v2.54.2
 
-RUN git clone -b ros2-master https://github.com/IntelRealSense/realsense-ros.git
+RUN mkdir build && cd build && \
+    cmake .. \
+      -DFORCE_RSUSB_BACKEND=ON \
+      -DBUILD_EXAMPLES=true \
+      -DBUILD_GRAPHICAL_EXAMPLES=true \
+      -DBUILD_WITH_OPENMP=false \
+      -DCMAKE_BUILD_TYPE=Release && \
+    make -j$(nproc) && \
+    make install && \
+    ldconfig
 
-WORKDIR /root/ws
-
-RUN source /opt/ros/humble/setup.bash && \
-    rosdep install --from-paths src --ignore-src -r -y
-
-RUN source /opt/ros/humble/setup.bash && \
-    colcon build --symlink-install
-
-RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
-RUN echo "source /root/ws/install/setup.bash" >> ~/.bashrc
-
-CMD ["bash"]
+# FORCE_RSUSB_BACKEND dispensa udev rules no host
+CMD ["/bin/bash"]
